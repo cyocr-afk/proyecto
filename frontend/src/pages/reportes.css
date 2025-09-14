@@ -1,0 +1,11 @@
+@media (max-width: 576px) {
+  .nav-tabs .nav-link {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+  .reportes-container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}

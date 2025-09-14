@@ -1,0 +1,60 @@
+/* HistorialPaciente.css */
+
+.historial-container {
+  font-family: 'Segoe UI', sans-serif;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+.card-body {
+  background-color: #fafafa;
+  border-radius: 8px;
+}
+
+.card {
+  border: 1px solid #e1e1e1;
+  border-radius: 10px;
+}
+
+pre {
+  font-size: 0.95rem;
+  background-color: #f1f1f1;
+  color: #333;
+  padding: 12px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+input.form-control {
+  border-radius: 6px;
+}
+
+button.list-group-item {
+  cursor: pointer;
+}
+
+@media screen and (max-width: 768px) {
+  .row > .col-md-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .card-title {
+    font-size: 1rem;
+  }
+
+  pre {
+    font-size: 0.9rem;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

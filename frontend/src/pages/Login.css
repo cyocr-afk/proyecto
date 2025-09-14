@@ -1,0 +1,121 @@
+/* Fondo degradado */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.login-container {
+  height: 100vh;
+  background: linear-gradient(135deg, #4193ff, #4b4850, #111113);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-box {
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 30px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0px 15px 30px rgba(0,0,0,0.2);
+  text-align: center;
+  position: relative;
+}
+
+/* Logo del MSPAS */
+.login-logo img {
+  width: 120px;
+  margin-bottom: 20px;
+}
+
+/* Inputs */
+.input-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  background: #f9f9f9;
+}
+
+.input-group i {
+  margin-right: 10px;
+  color: #888;
+}
+
+.input-group input {
+  border: none;
+  outline: none;
+  background: transparent;
+  flex: 1;
+  font-size: 16px;
+}
+
+/* Botón */
+.login-btn {
+  background: linear-gradient(to right, #bbb3e5, #8b7573);
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 25px;
+  width: 100%;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.login-btn:hover {
+  background: linear-gradient(to right, #f1f4f5, #b4b1b2);
+}
+
+/* Enlaces */
+.link-btn {
+  background: none;
+  border: none;
+  color: #666;
+  padding: 0;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link-btn:hover {
+  color: #333;
+}
+
+.links {
+  margin-top: 20px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.links a {
+  color: #666;
+  text-decoration: none;
+}
+
+.links a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-box {
+    padding: 30px 20px;
+  }
+
+  .login-logo img {
+    width: 100px;
+  }
+
+  .login-btn {
+    font-size: 14px;
+  }
+}
