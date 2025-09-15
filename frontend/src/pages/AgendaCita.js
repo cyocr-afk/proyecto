@@ -6,6 +6,9 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import es from 'date-fns/locale/es';
 import { Modal, Button, Form } from 'react-bootstrap';
 
+// ✅ URL dinámica (Render o local)
+const API_URL = process.env.REACT_APP_URL_BACKEND || '';
+
 const locales = { es };
 const localizer = dateFnsLocalizer({
   format,
@@ -31,10 +34,8 @@ const AgendaCita = () => {
   const [resultados, setResultados] = useState([]);
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
   const [eventos, setEventos] = useState([]);
-  // Estados para controlar vista y fecha
-const [vista, setVista] = useState('month');
-const [fecha, setFecha] = useState(new Date());
-
+  const [vista, setVista] = useState('month');
+  const [fecha, setFecha] = useState(new Date());
 
   // Modales
   const [showConfirm, setShowConfirm] = useState(false);
@@ -42,7 +43,7 @@ const [fecha, setFecha] = useState(new Date());
   const [showError, setShowError] = useState(false);
   const [mensajeError, setMensajeError] = useState('');
 
-  // Modal de cambio de estado
+  // Modal cambio de estado
   const [showModalEstado, setShowModalEstado] = useState(false);
   const [eventoSeleccionado, setEventoSeleccionado] = useState(null);
   const [nuevoEstado, setNuevoEstado] = useState('');
@@ -53,11 +54,11 @@ const [fecha, setFecha] = useState(new Date());
       setFormulario(prev => ({ ...prev, id_usuario: usuario.id_usuario }));
     }
 
-    axios.get('http://localhost:3001/api/pacientes')
+    axios.get(`${API_URL}/api/pacientes`)
       .then(res => setPacientes(res.data))
       .catch(err => console.error('Error al cargar pacientes:', err));
 
-    axios.get('http://localhost:3001/api/motivos')
+    axios.get(`${API_URL}/api/motivos_cita`)
       .then(res => setMotivos(res.data))
       .catch(err => console.error('Error al cargar motivos:', err));
 
@@ -65,7 +66,7 @@ const [fecha, setFecha] = useState(new Date());
   }, []);
 
   const cargarCitas = () => {
-    axios.get('http://localhost:3001/api/citas')
+    axios.get(`${API_URL}/api/citaseguimiento`)
       .then(res => {
         const eventosFormateados = res.data.map(cita => {
           const start = new Date(`${cita.fecha_cita}T${cita.hora}`);
@@ -109,13 +110,11 @@ const [fecha, setFecha] = useState(new Date());
     setFormulario(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleConfirmarRegistro = () => {
-    setShowConfirm(true);
-  };
+  const handleConfirmarRegistro = () => setShowConfirm(true);
 
   const handleSubmit = () => {
     setShowConfirm(false);
-    axios.post('http://localhost:3001/api/citas', formulario)
+    axios.post(`${API_URL}/api/citaseguimiento`, formulario)
       .then(() => {
         setFormulario({
           id_paciente: '',
@@ -144,12 +143,12 @@ const [fecha, setFecha] = useState(new Date());
   };
 
   const actualizarEstado = () => {
-    axios.put(`http://localhost:3001/api/citas/${eventoSeleccionado.id}`, { estado: nuevoEstado })
+    axios.put(`${API_URL}/api/citaseguimiento/${eventoSeleccionado.id}`, { estado: nuevoEstado })
       .then(() => {
         setShowModalEstado(false);
         cargarCitas();
       })
-      .catch(err => {
+      .catch(() => {
         setMensajeError('Error al actualizar estado');
         setShowError(true);
       });
@@ -245,22 +244,22 @@ const [fecha, setFecha] = useState(new Date());
 
       <hr className="my-5" />
 
-     {/* Calendario */}
-<Calendar
-  localizer={localizer}
-  events={eventos}
-  startAccessor="start"
-  endAccessor="end"
-  style={{ height: 500 }}
-  onSelectEvent={handleCitaClick}
-  eventPropGetter={eventoStyle}
-  views={['month', 'week', 'day', 'agenda']}
-  view={vista}                       // ✅ vista actual
-  onView={setVista}                  // ✅ actualizar vista
-  date={fecha}                       // ✅ fecha actual
-  onNavigate={setFecha}              // ✅ cambiar fecha con Hoy/Atrás/Próximo
-  toolbar={true}
-/>
+      {/* Calendario */}
+      <Calendar
+        localizer={localizer}
+        events={eventos}
+        startAccessor="start"
+        endAccessor="end"
+        style={{ height: 500 }}
+        onSelectEvent={handleCitaClick}
+        eventPropGetter={eventoStyle}
+        views={['month', 'week', 'day', 'agenda']}
+        view={vista}
+        onView={setVista}
+        date={fecha}
+        onNavigate={setFecha}
+        toolbar={true}
+      />
 
       {/* Modales */}
       <Modal show={showConfirm} onHide={() => setShowConfirm(false)} centered>
