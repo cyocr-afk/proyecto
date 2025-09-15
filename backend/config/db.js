@@ -5,15 +5,16 @@ const fs = require('fs');
 const path = require('path');
 
 function buildSSL() {
-  // Opción A: pega el contenido del ca.pem en la env DB_CA en Render
+  // Opción A: en Render pon el contenido del CA en la env DB_CA
   if (process.env.DB_CA) return { ca: process.env.DB_CA };
 
-  // Opción B: sube ca.pem a tu repo y apúntalo con SSL_CERT=./ca.pem
+  // Opción B: sube ca.pem al repo y apunta con SSL_CERT=./ca.pem
   if (process.env.SSL_CERT) {
     const p = path.resolve(process.env.SSL_CERT);
     if (fs.existsSync(p)) return { ca: fs.readFileSync(p) };
   }
-  // Si Railway exige SSL, asegura no dejarlo undefined.
+
+  // Si Railway exige SSL, asegúrate de no dejarlo undefined
   return undefined;
 }
 
@@ -27,21 +28,22 @@ async function initPool(retries = 5) {
   for (let i = 0; i < retries; i++) {
     try {
       pool = mysql.createPool({
-        host: process.env.DB_HOST,                 // *.proxy.rlwy.net
-        port: Number(process.env.DB_PORT),         // puerto proxy externo
+        host: process.env.DB_HOST,                // *.proxy.rlwy.net
+        port: Number(process.env.DB_PORT),        // puerto proxy externo
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        ssl,                                       // { ca: ... }
+        ssl,                                      // { ca: ... }
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0,
-        connectTimeout: 30000,                     // 30s
+        connectTimeout: 30000,                    // 30s
         enableKeepAlive: true,
         keepAliveInitialDelay: 0,
       });
 
-      await pool.query('SELECT 1');               // prueba
+      // Probar conexión
+      await pool.query('SELECT 1');
       console.log('Pool MySQL listo');
       break;
     } catch (err) {
@@ -51,14 +53,14 @@ async function initPool(retries = 5) {
     }
   }
 
-  // Ping periódico para evitar que el proxy cierre por inactividad
+  // Ping periódico para evitar cierre por inactividad del proxy
   setInterval(() => {
     pool.query('SELECT 1').catch(e =>
       console.warn('Ping DB falló:', e.code || e.message)
     );
   }, 50000);
 
-  // Evita que un error del pool tumbe el proceso
+  // Evitar que un error del pool tumbe el proceso
   pool.on?.('error', (e) => {
     console.error('Pool error:', e);
   });
