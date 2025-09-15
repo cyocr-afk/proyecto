@@ -1,6 +1,9 @@
-// ✅ CONTROL PRENATAL corregido y completo (sin cambiar nombres de campos)
+// ✅ CONTROL PRENATAL corregido y completo (con API_URL dinámico)
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
+// ✅ URL dinámica (Render o local)
+const API_URL = process.env.REACT_APP_URL_BACKEND || '';
 
 const calcularEdad = (fechaNacimiento) => {
   const hoy = new Date();
@@ -25,7 +28,7 @@ const ControlPrenatal = () => {
   const [conteoControl, setConteoControl] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  //obtener usuario
+  // obtener usuario
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem('user'));
     if (usuario?.id_usuario) {
@@ -33,9 +36,10 @@ const ControlPrenatal = () => {
     }
   }, []);
 
+  // calcular número de control
   useEffect(() => {
     if (control.id_paciente) {
-      axios.get(`http://localhost:3001/api/pacientes/${control.id_paciente}/controles-prenatales`)
+      axios.get(`${API_URL}/api/pacientes/${control.id_paciente}/controles-prenatales`)
         .then(res => setConteoControl((res.data?.total || 0) + 1))
         .catch(() => setConteoControl(1));
     }
@@ -49,7 +53,7 @@ const ControlPrenatal = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:3001/api/controles', {
+      await axios.post(`${API_URL}/api/controles`, {
         ...control,
         hemorragia_vaginal: control.hemorragia_vaginal ? 1 : 0,
         flujo_vaginal: control.flujo_vaginal ? 1 : 0,
@@ -87,7 +91,7 @@ const ControlPrenatal = () => {
 
   useEffect(() => {
     if (busqueda.trim().length >= 2) {
-      axios.get(`http://localhost:3001/api/pacientes?nombre=${busqueda}`)
+      axios.get(`${API_URL}/api/pacientes?nombre=${busqueda}`)
         .then(res => setSugerencias(res.data))
         .catch(() => setSugerencias([]));
     } else {
@@ -99,6 +103,7 @@ const ControlPrenatal = () => {
     <div className="container mt-4">
       <h2 className="mb-4">Registrar Control Prenatal</h2>
 
+      {/* Buscador */}
       <div className="mb-3 position-relative">
         <label>Buscar paciente por nombre o DPI</label>
         <input
@@ -115,7 +120,11 @@ const ControlPrenatal = () => {
         {sugerencias.length > 0 && (
           <ul className="list-group position-absolute w-100 shadow" style={{ zIndex: 1000 }}>
             {sugerencias.map((p) => (
-              <li key={p.id_paciente} className="list-group-item list-group-item-action" onMouseDown={() => seleccionarPaciente(p)}>
+              <li
+                key={p.id_paciente}
+                className="list-group-item list-group-item-action"
+                onMouseDown={() => seleccionarPaciente(p)}
+              >
                 {p.nombre} — DPI: {p.dpi}
               </li>
             ))}
@@ -123,6 +132,7 @@ const ControlPrenatal = () => {
         )}
       </div>
 
+      {/* Datos del paciente */}
       {seleccionado && (
         <div className="alert alert-info">
           <strong>Paciente:</strong><br />
@@ -133,6 +143,7 @@ const ControlPrenatal = () => {
         </div>
       )}
 
+      {/* Formulario */}
       <form onSubmit={handleSubmit}>
         <div className="row">
           <div className="col-md-4 mb-3">
@@ -212,7 +223,13 @@ const ControlPrenatal = () => {
               { name: 'papanicolau', label: 'Papanicolau' },
             ].map((item, i) => (
               <div className="form-check form-check-inline" key={i}>
-                <input type="checkbox" className="form-check-input" name={item.name} checked={control[item.name]} onChange={handleChange} />
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  name={item.name}
+                  checked={control[item.name]}
+                  onChange={handleChange}
+                />
                 <label className="form-check-label">{item.label}</label>
               </div>
             ))}
