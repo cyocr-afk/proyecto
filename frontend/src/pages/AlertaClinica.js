@@ -19,7 +19,19 @@ const AlertaClinica = () => {
   const [resultados, setResultados] = useState([]);
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
 
-  const id_usuario = JSON.parse(localStorage.getItem("user"))?.id_usuario || 1;
+  let id_usuario = 1; // valor por defecto
+try {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser && storedUser !== "undefined") {
+    const parsedUser = JSON.parse(storedUser);
+    if (parsedUser?.id_usuario) {
+      id_usuario = parsedUser.id_usuario;
+    }
+  }
+} catch (error) {
+  console.warn("Error al leer usuario en AlertaClinica:", error);
+}
+
 
   useEffect(() => {
     axios.get(`${API_URL}/api/pacientes`)
