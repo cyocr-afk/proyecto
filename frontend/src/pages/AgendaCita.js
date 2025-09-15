@@ -48,22 +48,30 @@ const AgendaCita = () => {
   const [eventoSeleccionado, setEventoSeleccionado] = useState(null);
   const [nuevoEstado, setNuevoEstado] = useState('');
 
-  useEffect(() => {
-    const usuario = JSON.parse(localStorage.getItem('user'));
-    if (usuario?.id_usuario) {
-      setFormulario(prev => ({ ...prev, id_usuario: usuario.id_usuario }));
+useEffect(() => {
+  try {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser && storedUser !== 'undefined') {
+      const usuario = JSON.parse(storedUser);
+      if (usuario?.id_usuario) {
+        setFormulario(prev => ({ ...prev, id_usuario: usuario.id_usuario }));
+      }
     }
+  } catch (error) {
+    console.warn("Error al leer usuario en AgendaCita:", error);
+  }
 
-    axios.get(`${API_URL}/api/pacientes`)
-      .then(res => setPacientes(res.data))
-      .catch(err => console.error('Error al cargar pacientes:', err));
+  axios.get(`${API_URL}/api/pacientes`)
+    .then(res => setPacientes(res.data))
+    .catch(err => console.error('Error al cargar pacientes:', err));
 
-    axios.get(`${API_URL}/api/motivos_cita`)
-      .then(res => setMotivos(res.data))
-      .catch(err => console.error('Error al cargar motivos:', err));
+  axios.get(`${API_URL}/api/motivos_cita`)
+    .then(res => setMotivos(res.data))
+    .catch(err => console.error('Error al cargar motivos:', err));
 
-    cargarCitas();
-  }, []);
+  cargarCitas();
+}, []);
+
 
   const cargarCitas = () => {
     axios.get(`${API_URL}/api/citaseguimiento`)
