@@ -11,13 +11,15 @@ function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const API_URL = process.env.REACT_APP_URL_BACKEND;
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3001/api/login', {
-        correo,
-        contraseña,
-      });
+      const response = await axios.post(`${API_URL}/api/login`, {
+  correo,
+  contraseña,
+});
 
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
