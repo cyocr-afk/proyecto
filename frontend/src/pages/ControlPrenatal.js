@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 // ✅ URL dinámica (Render o local)
-const API_URL = process.env.REACT_APP_URL_BACKEND || '';
+const API_URL = process.env.REACT_APP_URL_BACKEND || 'http://localhost:3001';
 
 const calcularEdad = (fechaNacimiento) => {
   const hoy = new Date();
@@ -30,18 +30,16 @@ const ControlPrenatal = () => {
 
   // ✅ obtener usuario de forma segura
   useEffect(() => {
-    let usuario = {};
     try {
       const storedUser = localStorage.getItem('user');
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
-        usuario = JSON.parse(storedUser);
+        const usuario = JSON.parse(storedUser);
+        if (usuario?.id_usuario) {
+          setControl(prev => ({ ...prev, id_usuario: usuario.id_usuario }));
+        }
       }
     } catch (e) {
-      usuario = {};
-    }
-
-    if (usuario?.id_usuario) {
-      setControl(prev => ({ ...prev, id_usuario: usuario.id_usuario }));
+      console.warn("Error leyendo usuario de localStorage", e);
     }
   }, []);
 
@@ -153,7 +151,26 @@ const ControlPrenatal = () => {
       )}
 
       {/* Formulario */}
-      {/* ... (resto del formulario igual que ya lo tienes) */}
+      <form onSubmit={handleSubmit}>
+        {/* 🔹 Aquí va todo tu formulario con los inputs (igual que ya lo tienes) */}
+        {/* ... */}
+        <button type="submit" className="btn btn-success">Guardar</button>
+      </form>
+
+      {showSuccess && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#28a745',
+          color: '#fff',
+          padding: '15px 20px',
+          borderRadius: '8px',
+          zIndex: 9999
+        }}>
+          Control prenatal registrado correctamente.
+        </div>
+      )}
     </div>
   );
 };
