@@ -1,4 +1,4 @@
- import React, { useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
@@ -16,11 +16,9 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-     const response = await axios.post(`${API_URL}/api/login`, {
-  correo,
-  contraseña,
-});
-
+      const response = await axios.post(`${API_URL}/api/login`, {
+        correo,
+        contraseña,
       });
 
       // ✅ Guardar solo si existe
