@@ -1,3 +1,4 @@
+// frontend/src/pages/AgendaCita.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
@@ -6,7 +7,6 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import es from 'date-fns/locale/es';
 import { Modal, Button, Form } from 'react-bootstrap';
 
-// ✅ URL dinámica (Render o local)
 const API_URL = process.env.REACT_APP_URL_BACKEND || '';
 
 const locales = { es };
@@ -37,44 +37,41 @@ const AgendaCita = () => {
   const [vista, setVista] = useState('month');
   const [fecha, setFecha] = useState(new Date());
 
-  // Modales
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [mensajeError, setMensajeError] = useState('');
 
-  // Modal cambio de estado
   const [showModalEstado, setShowModalEstado] = useState(false);
   const [eventoSeleccionado, setEventoSeleccionado] = useState(null);
   const [nuevoEstado, setNuevoEstado] = useState('');
 
-useEffect(() => {
-  try {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser && storedUser !== 'undefined') {
-      const usuario = JSON.parse(storedUser);
-      if (usuario?.id_usuario) {
-        setFormulario(prev => ({ ...prev, id_usuario: usuario.id_usuario }));
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser && storedUser !== 'undefined') {
+        const usuario = JSON.parse(storedUser);
+        if (usuario?.id_usuario) {
+          setFormulario(prev => ({ ...prev, id_usuario: usuario.id_usuario }));
+        }
       }
+    } catch (error) {
+      console.warn("Error al leer usuario en AgendaCita:", error);
     }
-  } catch (error) {
-    console.warn("Error al leer usuario en AgendaCita:", error);
-  }
 
-  axios.get(`${API_URL}/api/pacientes`)
-    .then(res => setPacientes(res.data))
-    .catch(err => console.error('Error al cargar pacientes:', err));
+    axios.get(`${API_URL}/api/pacientes`)
+      .then(res => setPacientes(res.data))
+      .catch(err => console.error('Error al cargar pacientes:', err));
 
-  axios.get(`${API_URL}/api/motivos`)
-    .then(res => setMotivos(res.data))
-    .catch(err => console.error('Error al cargar motivos:', err));
+    axios.get(`${API_URL}/api/motivos`)
+      .then(res => setMotivos(res.data))
+      .catch(err => console.error('Error al cargar motivos:', err));
 
-  cargarCitas();
-}, []);
-
+    cargarCitas();
+  }, []);
 
   const cargarCitas = () => {
-    axios.get(`${API_URL}/api/citaseguimiento`)
+    axios.get(`${API_URL}/api/citas`)
       .then(res => {
         const eventosFormateados = res.data.map(cita => {
           const start = new Date(`${cita.fecha_cita}T${cita.hora}`);
@@ -122,7 +119,7 @@ useEffect(() => {
 
   const handleSubmit = () => {
     setShowConfirm(false);
-    axios.post(`${API_URL}/api/citaseguimiento`, formulario)
+    axios.post(`${API_URL}/api/citas`, formulario)
       .then(() => {
         setFormulario({
           id_paciente: '',
@@ -151,7 +148,7 @@ useEffect(() => {
   };
 
   const actualizarEstado = () => {
-    axios.put(`${API_URL}/api/citaseguimiento/${eventoSeleccionado.id}`, { estado: nuevoEstado })
+    axios.put(`${API_URL}/api/citas/${eventoSeleccionado.id}`, { estado: nuevoEstado })
       .then(() => {
         setShowModalEstado(false);
         cargarCitas();
@@ -185,7 +182,6 @@ useEffect(() => {
       <h3 className="mb-4">Registrar Cita de Seguimiento</h3>
 
       <form onSubmit={(e) => { e.preventDefault(); handleConfirmarRegistro(); }}>
-        {/* Buscador */}
         <div className="mb-3 position-relative">
           <label className="form-label">Buscar paciente (nombre o DPI)</label>
           <input
@@ -211,7 +207,6 @@ useEffect(() => {
           )}
         </div>
 
-        {/* Paciente seleccionado */}
         {pacienteSeleccionado && (
           <div className="card mb-3">
             <div className="card-header bg-light"><strong>Datos del paciente:</strong></div>
@@ -224,19 +219,16 @@ useEffect(() => {
           </div>
         )}
 
-        {/* Fecha */}
         <div className="mb-3">
           <label className="form-label">Fecha</label>
           <input type="date" name="fecha_cita" value={formulario.fecha_cita} onChange={handleChange} className="form-control" required />
         </div>
 
-        {/* Hora */}
         <div className="mb-3">
           <label className="form-label">Hora</label>
           <input type="time" name="hora" value={formulario.hora} onChange={handleChange} className="form-control" required />
         </div>
 
-        {/* Motivo */}
         <div className="mb-3">
           <label className="form-label">Motivo</label>
           <select name="id_motivo" value={formulario.id_motivo} onChange={handleChange} className="form-control" required>
@@ -252,7 +244,6 @@ useEffect(() => {
 
       <hr className="my-5" />
 
-      {/* Calendario */}
       <Calendar
         localizer={localizer}
         events={eventos}
@@ -269,7 +260,6 @@ useEffect(() => {
         toolbar={true}
       />
 
-      {/* Modales */}
       <Modal show={showConfirm} onHide={() => setShowConfirm(false)} centered>
         <Modal.Header closeButton><Modal.Title>Confirmar registro</Modal.Title></Modal.Header>
         <Modal.Body>¿Está seguro que desea guardar esta cita?</Modal.Body>
@@ -291,7 +281,6 @@ useEffect(() => {
         <Modal.Footer><Button variant="danger" onClick={() => setShowError(false)}>Cerrar</Button></Modal.Footer>
       </Modal>
 
-      {/* Modal cambiar estado */}
       <Modal show={showModalEstado} onHide={() => setShowModalEstado(false)} centered>
         <Modal.Header closeButton><Modal.Title>Cambiar estado de cita</Modal.Title></Modal.Header>
         <Modal.Body>
