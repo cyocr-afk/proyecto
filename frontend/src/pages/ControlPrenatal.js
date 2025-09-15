@@ -150,10 +150,98 @@ const ControlPrenatal = () => {
         </div>
       )}
 
-      {/* Formulario */}
+      {/* Formulario completo */}
       <form onSubmit={handleSubmit}>
-        {/* 🔹 Aquí va todo tu formulario con los inputs (igual que ya lo tienes) */}
-        {/* ... */}
+        <div className="row">
+          <div className="col-md-4 mb-3">
+            <label>Número de Control General</label>
+            <input type="number" className="form-control" value={conteoControl} disabled />
+            <div className="form-text">Controles por embarazo.</div>
+          </div>
+
+          <div className="col-md-4 mb-3">
+            <label>Fecha del control</label>
+            <input type="date" name="fecha_control" className="form-control" value={control.fecha_control} onChange={handleChange} required />
+          </div>
+
+          <div className="col-md-4 mb-3">
+            <label>Edad gestacional (semanas)</label>
+            <input type="number" name="edad_gestacional" className="form-control" value={control.edad_gestacional} onChange={handleChange} required />
+          </div>
+
+          <div className="col-md-4 mb-3">
+            <label>Peso (kg)</label>
+            <input type="number" step="0.01" name="peso" className="form-control" value={control.peso} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-4 mb-3">
+            <label>Presión arterial</label>
+            <input type="text" name="presion_arterial" className="form-control" value={control.presion_arterial} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-4 mb-3">
+            <label>Respiraciones por minuto</label>
+            <input type="number" name="respiraciones_minuto" className="form-control" value={control.respiraciones_minuto} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-4 mb-3">
+            <label>Glicemia</label>
+            <input type="number" step="0.01" name="glicemia" className="form-control" value={control.glicemia} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-4 mb-3">
+            <label>Altura uterina</label>
+            <input type="number" step="0.01" name="altura_uterina" className="form-control" value={control.altura_uterina} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-4 mb-3">
+            <label>Fondo uterino</label>
+            <input type="number" step="0.01" name="fondo_uterino" className="form-control" value={control.fondo_uterino} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-4 mb-3">
+            <label>Frecuencia cardíaca fetal</label>
+            <input type="text" name="frecuencia_cardiaca_fetal" className="form-control" value={control.frecuencia_cardiaca_fetal} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-6 mb-3">
+            <label>Movimientos fetales</label>
+            <input type="text" name="movimientos_fetales" className="form-control" value={control.movimientos_fetales} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-6 mb-3">
+            <label>Grupo RH</label>
+            <select name="grupo_rh" className="form-select" value={control.grupo_rh} onChange={handleChange}>
+              <option value="">Seleccione</option>
+              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((rh, i) => (
+                <option key={i} value={rh}>{rh}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="col-12 mb-3">
+            <label className="form-label d-block">Evaluaciones realizadas</label>
+            {[
+              { name: 'hemorragia_vaginal', label: 'Hemorragia vaginal' },
+              { name: 'flujo_vaginal', label: 'Flujo vaginal' },
+              { name: 'hematologia_completa', label: 'Hematología completa' },
+              { name: 'vdrl', label: 'VDRL' },
+              { name: 'vih', label: 'VIH' },
+              { name: 'papanicolau', label: 'Papanicolau' },
+            ].map((item, i) => (
+              <div className="form-check form-check-inline" key={i}>
+                <input type="checkbox" className="form-check-input" name={item.name} checked={control[item.name]} onChange={handleChange} />
+                <label className="form-check-label">{item.label}</label>
+              </div>
+            ))}
+          </div>
+
+          <div className="mb-3">
+            <label>Observaciones</label>
+            <textarea name="observaciones" className="form-control" rows="3" value={control.observaciones} onChange={handleChange}></textarea>
+          </div>
+        </div>
+
         <button type="submit" className="btn btn-success">Guardar</button>
       </form>
 
