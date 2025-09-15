@@ -4,14 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import mspasLogo from '../pages/assets/mspas-logo.png';
 
+// ✅ URL dinámica (Render o local)
+const API_URL = process.env.REACT_APP_URL_BACKEND || 'http://localhost:3001';
+
 function Login() {
   const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
-  // ✅ URL dinámica
-  const API_URL = process.env.REACT_APP_URL_BACKEND || '';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,16 +21,15 @@ function Login() {
         contraseña,
       });
 
-      // ✅ Guardar solo si existe
+      // ✅ Guardar en localStorage de forma segura
       if (response.data?.token) {
         localStorage.setItem('token', response.data.token);
       }
       if (response.data?.user) {
-  localStorage.setItem('user', JSON.stringify(response.data.user));
-} else {
-  localStorage.removeItem('user'); // evita guardar "undefined"
-}
-
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      } else {
+        localStorage.removeItem('user'); // evita guardar "undefined"
+      }
 
       navigate('/inicio'); // Redirección
     } catch (err) {
