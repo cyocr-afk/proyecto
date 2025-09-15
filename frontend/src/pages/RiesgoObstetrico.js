@@ -1,5 +1,9 @@
+// frontend/src/pages/RiesgoObstetrico.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
+// ✅ URL dinámica (Render o local)
+const API_URL = process.env.REACT_APP_URL_BACKEND || '';
 
 const RiesgoObstetrico = () => {
   const [formulario, setFormulario] = useState({
@@ -24,7 +28,7 @@ const RiesgoObstetrico = () => {
 
   useEffect(() => {
     if (formulario.id_paciente) {
-      axios.get(`http://localhost:3001/api/pacientes/${formulario.id_paciente}/riesgos-obstetricos`)
+      axios.get(`${API_URL}/api/pacientes/${formulario.id_paciente}/riesgos-obstetricos`)
         .then(res => setConteoRiesgo((res.data?.total || 0) + 1))
         .catch(() => setConteoRiesgo(1));
     }
@@ -39,7 +43,7 @@ const RiesgoObstetrico = () => {
 
   useEffect(() => {
     if (busqueda.trim().length >= 2) {
-      axios.get(`http://localhost:3001/api/pacientes?nombre=${busqueda}`)
+      axios.get(`${API_URL}/api/pacientes?nombre=${busqueda}`)
         .then(res => setSugerencias(res.data))
         .catch(() => setSugerencias([]));
     } else {
@@ -59,7 +63,7 @@ const RiesgoObstetrico = () => {
     const datosConFecha = { ...formulario, fecha_registro: hoy };
 
     try {
-      await axios.post('http://localhost:3001/api/riesgos', datosConFecha);
+      await axios.post(`${API_URL}/api/riesgos`, datosConFecha);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2500);
       setFormulario({
@@ -80,6 +84,7 @@ const RiesgoObstetrico = () => {
     <div className="container mt-4">
       <h2 className="mb-4">Registro de Riesgo Obstétrico</h2>
 
+      {/* Buscador */}
       <div className="mb-3 position-relative">
         <label>Buscar paciente por nombre o DPI</label>
         <input
@@ -104,6 +109,7 @@ const RiesgoObstetrico = () => {
         )}
       </div>
 
+      {/* Datos del paciente */}
       {seleccionado && (
         <div className="alert alert-info">
           <strong>Paciente:</strong><br />
@@ -114,6 +120,7 @@ const RiesgoObstetrico = () => {
         </div>
       )}
 
+      {/* Formulario */}
       <form onSubmit={handleSubmit}>
         <div className="row">
           <div className="col-md-4 mb-3">
@@ -149,7 +156,7 @@ const RiesgoObstetrico = () => {
             <input type="number" name="no_cesareas" className="form-control" value={formulario.no_cesareas} onChange={handleChange} />
           </div>
 
-          {/* Selección tipo Sí/No */}
+          {/* Selects Sí / No */}
           {[
             ['embarazo_multiples', 'Embarazo múltiple'],
             ['hipertension', 'Hipertensión'],
@@ -177,7 +184,6 @@ const RiesgoObstetrico = () => {
             <label>Presión arterial diastólica</label>
             <input type="text" name="presion_arterial_diastolica" className="form-control" value={formulario.presion_arterial_diastolica} onChange={handleChange} />
           </div>
-
 
           <div className="col-md-12 mb-3">
             <label>Observaciones</label>
