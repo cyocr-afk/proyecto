@@ -26,8 +26,11 @@ function Login() {
         localStorage.setItem('token', response.data.token);
       }
       if (response.data?.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-      }
+  localStorage.setItem('user', JSON.stringify(response.data.user));
+} else {
+  localStorage.removeItem('user'); // evita guardar "undefined"
+}
+
 
       navigate('/inicio'); // Redirección
     } catch (err) {
