@@ -30,8 +30,8 @@ exports.login = async (req, res) => {
 
     // Nota: acceder a la columna con ñ de forma segura
     const hash = user['contraseña'];
-
     const match = await bcrypt.compare(contraseña, hash);
+
     if (!match) {
       return res.status(401).json({ error: 'Contraseña incorrecta' });
     }
