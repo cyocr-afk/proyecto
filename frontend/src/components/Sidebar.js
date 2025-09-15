@@ -10,11 +10,20 @@ const Sidebar = () => {
 
   // Detectar pantalla móvil
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  try {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser && storedUser !== 'undefined') {
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser && typeof parsedUser === 'object') {
+        setUser(parsedUser);
+      }
+    }
+  } catch (error) {
+    console.warn('Error al leer el usuario desde localStorage:', error);
+    setUser({});
+  }
+}, []);
+
 
   // Cargar usuario desde localStorage con validación robusta
   useEffect(() => {
