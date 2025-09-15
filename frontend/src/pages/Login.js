@@ -5,7 +5,7 @@ import './Login.css';
 import mspasLogo from '../pages/assets/mspas-logo.png';
 
 // ✅ URL dinámica (Render o local)
-const API_URL = process.env.REACT_APP_URL_BACKEND ;
+const API_URL = process.env.REACT_APP_BACKEND_URL ;
 
 function Login() {
   const [correo, setCorreo] = useState('');
