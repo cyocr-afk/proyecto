@@ -4,7 +4,6 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
-// ✅ URL dinámica (Render o local)
 const API_URL = process.env.REACT_APP_URL_BACKEND || '';
 
 function RegistrarPaciente() {
