@@ -1,5 +1,4 @@
-// src/pages/Login.js
-import React, { useState } from 'react';
+ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
@@ -11,33 +10,28 @@ function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // ✅ URL dinámica segura (Render o local)
+  // ✅ URL dinámica
   const API_URL = process.env.REACT_APP_URL_BACKEND || '';
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     try {
-      const response = await axios.post(`${API_URL}/api/login`, {
+      const response = await axios.post(${API_URL}/api/login, {
         correo,
         contraseña,
       });
 
-      const { token, user } = response.data;
-
-      if (!token || !user) {
-        setError('Respuesta inválida del servidor');
-        return;
+      // ✅ Guardar solo si existe
+      if (response.data?.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      if (response.data?.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
       }
 
-      // ✅ Guardar en localStorage solo si hay token y user válidos
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      // Redirigir a vista de inicio
-      navigate('/inicio');
+      navigate('/inicio'); // Redirección
     } catch (err) {
-      console.error('[LOGIN ERROR]', err);
+      console.error(err);
       setError('Credenciales inválidas o error del servidor');
     }
   };
@@ -49,7 +43,6 @@ function Login() {
           <img src={mspasLogo} alt="Logo MSPAS" />
         </div>
         <h2 className="text-center">Bienvenidos</h2>
-
         <form onSubmit={handleLogin}>
           <div className="input-group">
             <i className="fas fa-user"></i>
@@ -61,7 +54,6 @@ function Login() {
               required
             />
           </div>
-
           <div className="input-group">
             <i className="fas fa-lock"></i>
             <input
@@ -72,14 +64,8 @@ function Login() {
               required
             />
           </div>
-
           <button type="submit" className="login-btn w-100">INGRESAR</button>
-
-          {error && (
-            <p style={{ color: 'white', marginTop: '10px', textAlign: 'center' }}>
-              {error}
-            </p>
-          )}
+          {error && <p style={{ color: 'white', marginTop: '10px' }}>{error}</p>}
         </form>
       </div>
     </div>
