@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const API = 'http://localhost:3001/api';
+// ✅ URL dinámica (Render o local)
+const API_URL = process.env.REACT_APP_URL_BACKEND || '';
 
 const RegistrarUsuario = () => {
   const [form, setForm] = useState({
@@ -54,7 +55,7 @@ const RegistrarUsuario = () => {
 
   const confirmarRegistro = async () => {
     try {
-      await axios.post(`${API}/usuarios`, form);
+      await axios.post(`${API_URL}/api/usuarios`, form);
       setMensaje('✅ Usuario registrado correctamente');
       setForm({ nombre: '', correo: '', contraseña: '', rol: '', estado: 1 });
     } catch (error) {
