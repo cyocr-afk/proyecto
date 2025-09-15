@@ -5,26 +5,31 @@ import './Login.css';
 import mspasLogo from '../pages/assets/mspas-logo.png';
 
 function Login() {
-  
   const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const API_URL = process.env.REACT_APP_URL_BACKEND;
-  
+  // ✅ URL dinámica
+  const API_URL = process.env.REACT_APP_URL_BACKEND || '';
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const response = await axios.post(`${API_URL}/api/login`, {
-  correo,
-  contraseña,
-});
+        correo,
+        contraseña,
+      });
 
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      // ✅ Guardar solo si existe
+      if (response.data?.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      if (response.data?.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
 
-      navigate('/inicio'); // Redirección correcta
+      navigate('/inicio'); // Redirección
     } catch (err) {
       console.error(err);
       setError('Credenciales inválidas o error del servidor');
