@@ -4,6 +4,9 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
+// ✅ URL dinámica (Render o local)
+const API_URL = process.env.REACT_APP_URL_BACKEND || '';
+
 function RegistrarPaciente() {
   const navigate = useNavigate();
   const [paciente, setPaciente] = useState({
@@ -53,7 +56,7 @@ function RegistrarPaciente() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.post('http://localhost:3001/api/pacientes', paciente);
+          await axios.post(`${API_URL}/api/pacientes`, paciente);
           Swal.fire({
             icon: 'success',
             title: 'Paciente registrado',
