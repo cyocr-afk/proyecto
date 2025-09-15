@@ -1,14 +1,14 @@
-// src/components/Sidebar.jsx
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-// import './Sidebar.css';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [user, setUser] = useState({});
 
+  // Detectar pantalla móvil
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
@@ -16,22 +16,25 @@ const Sidebar = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Cargar usuario desde localStorage con validación robusta
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser && typeof parsedUser === 'object') {
+        setUser(parsedUser);
+      }
+    } catch (error) {
+      console.warn('Error al leer el usuario desde localStorage:', error);
+      setUser({});
+    }
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/');
   };
-
-  // ✅ Manejo seguro de JSON.parse
-  let user = {};
-  try {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
-      user = JSON.parse(storedUser);
-    }
-  } catch (e) {
-    user = {};
-  }
 
   return (
     <>
@@ -73,13 +76,12 @@ const Sidebar = () => {
             <i className="bi bi-house-door"></i> Inicio
           </NavLink>
 
-          {/* ✅ Opciones visibles solo para Administradores */}
+          {/* Opciones visibles solo para Administradores */}
           {user?.rol === 'Administrador' && (
             <>
               <NavLink to="/usuarios/registro" className="text-white text-decoration-none d-flex align-items-center gap-2">
                 <i className="bi bi-person-badge"></i> Registrar Usuario
               </NavLink>
-
               <NavLink to="/usuarios/lista" className="text-white text-decoration-none d-flex align-items-center gap-2">
                 <i className="bi bi-people"></i> Lista de Usuarios
               </NavLink>
