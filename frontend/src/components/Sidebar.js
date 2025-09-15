@@ -26,7 +26,9 @@ const Sidebar = () => {
   let user = {};
   try {
     const storedUser = localStorage.getItem('user');
-    user = storedUser ? JSON.parse(storedUser) : {};
+    if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+      user = JSON.parse(storedUser);
+    }
   } catch (e) {
     user = {};
   }
@@ -46,7 +48,9 @@ const Sidebar = () => {
 
       {/* Sidebar - Offcanvas en móviles, fijo en escritorio */}
       <div
-        className={`bg-dark text-white ${isMobile ? (showMenu ? 'offcanvas offcanvas-start show' : 'offcanvas offcanvas-start') : 'position-fixed'} h-100 d-flex flex-column`}
+        className={`bg-dark text-white ${
+          isMobile ? (showMenu ? 'offcanvas offcanvas-start show' : 'offcanvas offcanvas-start') : 'position-fixed'
+        } h-100 d-flex flex-column`}
         style={{ width: '250px', zIndex: isMobile ? 1049 : 100 }}
         tabIndex="-1"
         id="sidebarMenu"
