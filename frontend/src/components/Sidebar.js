@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-//import './Sidebar.css';
+// import './Sidebar.css';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -22,7 +22,14 @@ const Sidebar = () => {
     navigate('/');
   };
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  // ✅ Manejo seguro de JSON.parse
+  let user = {};
+  try {
+    const storedUser = localStorage.getItem('user');
+    user = storedUser ? JSON.parse(storedUser) : {};
+  } catch (e) {
+    user = {};
+  }
 
   return (
     <>
@@ -39,7 +46,7 @@ const Sidebar = () => {
 
       {/* Sidebar - Offcanvas en móviles, fijo en escritorio */}
       <div
-        className={`bg-dark text-white ${isMobile ? 'offcanvas offcanvas-start show' : 'position-fixed'} h-100 d-flex flex-column`}
+        className={`bg-dark text-white ${isMobile ? (showMenu ? 'offcanvas offcanvas-start show' : 'offcanvas offcanvas-start') : 'position-fixed'} h-100 d-flex flex-column`}
         style={{ width: '250px', zIndex: isMobile ? 1049 : 100 }}
         tabIndex="-1"
         id="sidebarMenu"
@@ -62,21 +69,18 @@ const Sidebar = () => {
             <i className="bi bi-house-door"></i> Inicio
           </NavLink>
 
-           {/* ✅ Nueva opción SOLO para Administradores */}
+          {/* ✅ Opciones visibles solo para Administradores */}
           {user?.rol === 'Administrador' && (
             <>
-            <NavLink to="/usuarios/registro" className="text-white text-decoration-none d-flex align-items-center gap-2">
-              <i className="bi bi-person-badge"></i> Registrar Usuario
-            </NavLink>
+              <NavLink to="/usuarios/registro" className="text-white text-decoration-none d-flex align-items-center gap-2">
+                <i className="bi bi-person-badge"></i> Registrar Usuario
+              </NavLink>
 
-            <NavLink to="/usuarios/lista" className="text-white text-decoration-none d-flex align-items-center gap-2">
-            <i className="bi bi-people"></i> Lista de Usuarios
-            </NavLink>
+              <NavLink to="/usuarios/lista" className="text-white text-decoration-none d-flex align-items-center gap-2">
+                <i className="bi bi-people"></i> Lista de Usuarios
+              </NavLink>
             </>
           )}
-
-
-        
 
           <NavLink to="/pacientes/registro" className="text-white text-decoration-none d-flex align-items-center gap-2">
             <i className="bi bi-person-plus"></i> Registro Paciente
