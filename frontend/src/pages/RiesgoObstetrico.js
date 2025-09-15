@@ -19,12 +19,19 @@ const RiesgoObstetrico = () => {
   const [conteoRiesgo, setConteoRiesgo] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  useEffect(() => {
-    const usuario = JSON.parse(localStorage.getItem('user'));
-    if (usuario?.id_usuario) {
-      setFormulario(prev => ({ ...prev, id_usuario: usuario.id_usuario }));
+ useEffect(() => {
+  try {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser && storedUser !== 'undefined') {
+      const usuario = JSON.parse(storedUser);
+      if (usuario?.id_usuario) {
+        setFormulario(prev => ({ ...prev, id_usuario: usuario.id_usuario }));
+      }
     }
-  }, []);
+  } catch (error) {
+    console.warn("Error al leer usuario en RiesgoObstetrico:", error);
+  }
+}, []);
 
   useEffect(() => {
     if (formulario.id_paciente) {
