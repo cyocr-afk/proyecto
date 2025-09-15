@@ -65,7 +65,7 @@ useEffect(() => {
     .then(res => setPacientes(res.data))
     .catch(err => console.error('Error al cargar pacientes:', err));
 
-  axios.get(`${API_URL}/api/motivos_cita`)
+  axios.get(`${API_URL}/api/motivos`)
     .then(res => setMotivos(res.data))
     .catch(err => console.error('Error al cargar motivos:', err));
 
