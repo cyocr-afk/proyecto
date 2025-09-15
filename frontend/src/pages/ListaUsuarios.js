@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const API = 'http://localhost:3001/api';
+// ✅ URL dinámica (Render o local)
+const API_URL = process.env.REACT_APP_URL_BACKEND || '';
 
 const ListaUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -18,7 +19,7 @@ const ListaUsuarios = () => {
 
   const fetchUsuarios = async () => {
     try {
-      const { data } = await axios.get(`${API}/usuarios`);
+      const { data } = await axios.get(`${API_URL}/api/usuarios`);
       setUsuarios(data);
     } catch (error) {
       console.error('Error al obtener usuarios:', error);
@@ -28,7 +29,7 @@ const ListaUsuarios = () => {
   const cambiarEstado = async (id, estadoActual) => {
     try {
       const nuevoEstado = estadoActual === 1 ? 0 : 1;
-      await axios.patch(`${API}/usuarios/${id}`, { estado: nuevoEstado });
+      await axios.patch(`${API_URL}/api/usuarios/${id}`, { estado: nuevoEstado });
       setMensaje(`✅ Usuario ${nuevoEstado === 1 ? 'activado' : 'desactivado'} correctamente`);
       fetchUsuarios(); // refrescar lista
     } catch (error) {
