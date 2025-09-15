@@ -1,3 +1,5 @@
+// frontend/src/pages/secciones/Reportes.js
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
@@ -6,6 +8,7 @@ import {
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
+const API_URL = process.env.REACT_APP_URL_BACKEND || ''; // <-- Define esto en Render
 
 function Reportes() {
   const [desde, setDesde] = useState(null);
@@ -17,83 +20,129 @@ function Reportes() {
   // Paginación
   const [paginaActual, setPaginaActual] = useState(1);
   const [registrosPorPagina, setRegistrosPorPagina] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const obtenerDatos = async () => {
+  // Helper: formatea fecha a YYYY-MM-DD
+  const formatDateYYYYMMDD = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // Helper: obtiene id_usuario desde localStorage (ajusta si tu formato es diferente)
+  const getUserIdFromStorage = () => {
     try {
-      const params = {
-        mostrar_todos: mostrarTodos,
-        desde: desde ? desde.toISOString().slice(0, 10) : '',
-        hasta: hasta ? hasta.toISOString().slice(0, 10) : ''
-      };
-
-      const response = await axios.get('http://localhost:3001/api/reportes/pacientes/visual', { params });
-      setGraficoPacientes(response.data.conteoMensual);
-      setDetallePacientes(response.data.detalle);
-      setPaginaActual(1); // Reinicia a la primera página
-    } catch (error) {
-      console.error('Error al obtener datos:', error);
+      const userJson = localStorage.getItem('user');
+      if (!userJson) return null;
+      const user = JSON.parse(userJson);
+      return user?.id || user?.id_usuario || null;
+    } catch {
+      return null;
     }
   };
 
-  const exportarPDF = async () => {
+  const obtenerDatos = async () => {
+    setErrorMsg('');
+    setLoading(true);
     try {
-      const body = {
-        desde: desde ? desde.toISOString().slice(0, 10) : '',
-        hasta: hasta ? hasta.toISOString().slice(0, 10) : '',
-        mostrarTodos,
-        id_usuario: localStorage.getItem('id_usuario') || 1
+      if (!API_URL) {
+        throw new Error('API_URL no está configurada. Define REACT_APP_URL_BACKEND en tu entorno.');
+      }
+
+      const params = {
+        mostrar_todos: mostrarTodos,
+        desde: desde ? formatDateYYYYMMDD(desde) : '',
+        hasta: hasta ? formatDateYYYYMMDD(hasta) : ''
       };
 
-      const response = await axios.post('http://localhost:3001/api/reportes/pacientes/pdf', body, {
+      const response = await axios.get(`${API_URL}/api/reportes/pacientes/visual`, { params });
+      setGraficoPacientes(response.data?.conteoMensual || []);
+      setDetallePacientes(response.data?.detalle || []);
+      setPaginaActual(1); // Reinicia a la primera página
+    } catch (error) {
+      console.error('Error al obtener datos:', error);
+      setErrorMsg('Error al obtener datos. Revisa la consola y la configuración del backend.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const descargarBlob = (blob, filename) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const exportarPDF = async () => {
+    setErrorMsg('');
+    try {
+      if (!API_URL) throw new Error('API_URL no está configurada.');
+
+      const body = {
+        desde: desde ? formatDateYYYYMMDD(desde) : '',
+        hasta: hasta ? formatDateYYYYMMDD(hasta) : '',
+        mostrarTodos,
+        id_usuario: getUserIdFromStorage() || 1
+      };
+
+      const response = await axios.post(`${API_URL}/api/reportes/pacientes/pdf`, body, {
         responseType: 'blob'
       });
 
       const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'reporte_pacientes.pdf';
-      a.click();
+      descargarBlob(blob, 'reporte_pacientes.pdf');
     } catch (error) {
       console.error('Error al exportar PDF:', error);
+      setErrorMsg('Error al exportar PDF. Revisa la consola y la configuración del backend.');
     }
   };
 
   const exportarExcel = async () => {
+    setErrorMsg('');
     try {
+      if (!API_URL) throw new Error('API_URL no está configurada.');
+
       const body = {
-        desde: desde ? desde.toISOString().slice(0, 10) : '',
-        hasta: hasta ? hasta.toISOString().slice(0, 10) : '',
+        desde: desde ? formatDateYYYYMMDD(desde) : '',
+        hasta: hasta ? formatDateYYYYMMDD(hasta) : '',
         mostrarTodos,
-        id_usuario: localStorage.getItem('id_usuario') || 1
+        id_usuario: getUserIdFromStorage() || 1
       };
 
-      const response = await axios.post('http://localhost:3001/api/reportes/pacientes/excel', body, {
+      const response = await axios.post(`${API_URL}/api/reportes/pacientes/excel`, body, {
         responseType: 'blob'
       });
 
       const blob = new Blob([response.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'reporte_pacientes.xlsx';
-      a.click();
+      descargarBlob(blob, 'reporte_pacientes.xlsx');
     } catch (error) {
       console.error('Error al exportar Excel:', error);
+      setErrorMsg('Error al exportar Excel. Revisa la consola y la configuración del backend.');
     }
   };
 
   useEffect(() => {
     obtenerDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [desde, hasta, mostrarTodos]);
 
   // Cálculo de paginación
   const indiceUltimo = paginaActual * registrosPorPagina;
   const indicePrimero = indiceUltimo - registrosPorPagina;
-  const pacientesPaginados = detallePacientes.slice(indicePrimero, indiceUltimo);
-  const totalPaginas = Math.ceil(detallePacientes.length / registrosPorPagina);
+  const pacientesPaginados = Array.isArray(detallePacientes) ? detallePacientes.slice(indicePrimero, indiceUltimo) : [];
+  const totalPaginas = Math.max(1, Math.ceil((detallePacientes?.length || 0) / registrosPorPagina));
 
   const cambiarPagina = (nueva) => {
     if (nueva >= 1 && nueva <= totalPaginas) {
@@ -142,21 +191,24 @@ function Reportes() {
           </div>
         </div>
         <div className="col-md-3 col-12 d-flex justify-content-md-end gap-2">
-          <button className="btn btn-danger w-100 w-md-auto" onClick={exportarPDF}>
+          <button className="btn btn-danger w-100 w-md-auto" onClick={exportarPDF} disabled={loading}>
             📄 Exportar PDF
           </button>
-          <button className="btn btn-success w-100 w-md-auto" onClick={exportarExcel}>
+          <button className="btn btn-success w-100 w-md-auto" onClick={exportarExcel} disabled={loading}>
             📊 Exportar Excel
           </button>
         </div>
       </div>
+
+      {errorMsg && <div className="alert alert-danger">{errorMsg}</div>}
+      {loading && <div className="mb-3">Cargando datos...</div>}
 
       {/* 📈 Gráfico */}
       <div className="card mb-4">
         <div className="card-body">
           <h5 className="card-title">📈 Pacientes registrados por mes</h5>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={graficoPacientes}>
+            <BarChart data={graficoPacientes || []}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="mes" />
               <YAxis allowDecimals={false} />
@@ -178,7 +230,10 @@ function Reportes() {
             <select
               className="form-select w-auto d-inline-block ms-2"
               value={registrosPorPagina}
-              onChange={(e) => setRegistrosPorPagina(Number(e.target.value))}
+              onChange={(e) => {
+                setRegistrosPorPagina(Number(e.target.value));
+                setPaginaActual(1);
+              }}
             >
               <option value={5}>5</option>
               <option value={10}>10</option>
@@ -201,17 +256,23 @@ function Reportes() {
                 </tr>
               </thead>
               <tbody>
-                {pacientesPaginados.map((p, i) => (
-                  <tr key={i}>
-                    <td>{new Date(p.fecha_registro).toISOString().split('T')[0]}</td>
-                    <td>{p.nombre}</td>
-                    <td>{p.dpi}</td>
-                    <td>{p.edad}</td>
-                    <td>{new Date(p.fecha_nacimiento).toISOString().split('T')[0]}</td>
-                    <td>{p.direccion}</td>
-                    <td>{p.telefono}</td>
+                {pacientesPaginados.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="text-center">No hay registros</td>
                   </tr>
-                ))}
+                ) : (
+                  pacientesPaginados.map((p, i) => (
+                    <tr key={i}>
+                      <td>{p?.fecha_registro ? formatDateYYYYMMDD(p.fecha_registro) : ''}</td>
+                      <td>{p?.nombre || ''}</td>
+                      <td>{p?.dpi || ''}</td>
+                      <td>{p?.edad ?? ''}</td>
+                      <td>{p?.fecha_nacimiento ? formatDateYYYYMMDD(p.fecha_nacimiento) : ''}</td>
+                      <td>{p?.direccion || ''}</td>
+                      <td>{p?.telefono || ''}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
