@@ -1,7 +1,6 @@
-// controllers/citasController.js
-
 const connection = require('../config/db');
 
+// Registrar una nueva cita de seguimiento
 exports.registrarCita = (req, res) => {
   const { id_paciente, fecha_cita, hora, id_motivo, id_usuario, estado } = req.body;
 
@@ -9,36 +8,53 @@ exports.registrarCita = (req, res) => {
     return res.status(400).json({ error: 'Campos incompletos' });
   }
 
-  const sql = `
-    INSERT INTO citaseguimiento (id_paciente, fecha_cita, hora, id_motivo, id_usuario, estado)
-    VALUES (?, ?, ?, ?, ?, ?)
+  // 🛑 Verificar si ya existe una cita en la misma fecha y hora para el mismo paciente
+  const verificarSql = `
+    SELECT * FROM citaseguimiento 
+    WHERE id_paciente = ? AND fecha_cita = ? AND hora = ?
   `;
 
-  connection.query(sql, [id_paciente, fecha_cita, hora, id_motivo, id_usuario, estado], (err, result) => {
+  connection.query(verificarSql, [id_paciente, fecha_cita, hora], (err, results) => {
     if (err) {
-      console.error('Error al registrar cita:', err);
-      return res.status(500).json({ error: 'Error al registrar cita' });
+      console.error('Error al verificar cita existente:', err);
+      return res.status(500).json({ error: 'Error al verificar cita' });
     }
-    res.status(201).json({ mensaje: 'Cita registrada correctamente' });
+
+    if (results.length > 0) {
+      return res.status(400).json({ error: 'Ya existe una cita registrada para ese paciente en esa fecha y hora' });
+    }
+
+    // ✅ Insertar la cita si no existe duplicado
+    const insertarSql = `
+      INSERT INTO citaseguimiento (id_paciente, fecha_cita, hora, id_motivo, id_usuario, estado)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    connection.query(insertarSql, [id_paciente, fecha_cita, hora, id_motivo, id_usuario, estado], (err, result) => {
+      if (err) {
+        console.error('Error al registrar cita:', err);
+        return res.status(500).json({ error: 'Error al registrar cita' });
+      }
+
+      res.status(201).json({ mensaje: 'Cita registrada correctamente' });
+    });
   });
 };
 
 // Obtener todas las citas con nombre del paciente y motivo
 exports.obtenerCitas = (req, res) => {
   const sql = `
-  SELECT 
-    c.id_cita,
-    DATE_FORMAT(c.fecha_cita, '%Y-%m-%d') AS fecha_cita,
-    c.hora,
-    c.estado,
-    p.nombre AS nombre_paciente,
-    m.nombre AS motivos_cita
+    SELECT 
+      c.id_cita,
+      DATE_FORMAT(c.fecha_cita, '%Y-%m-%d') AS fecha_cita,
+      c.hora,
+      c.estado,
+      p.nombre AS nombre_paciente,
+      m.nombre AS motivo
     FROM citaseguimiento c
     JOIN paciente p ON c.id_paciente = p.id_paciente
-    JOIN motivos_cita m ON c.id_motivo = m.id_motivo;
-`;
-
-
+    JOIN motivos_cita m ON c.id_motivo = m.id_motivo
+  `;
 
   connection.query(sql, (err, results) => {
     if (err) {
@@ -59,6 +75,7 @@ exports.actualizarEstado = (req, res) => {
   }
 
   const sql = `UPDATE citaseguimiento SET estado = ? WHERE id_cita = ?`;
+
   connection.query(sql, [estado, id], (err, result) => {
     if (err) {
       console.error('Error al actualizar estado:', err);
