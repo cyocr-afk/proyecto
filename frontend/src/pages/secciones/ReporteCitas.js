@@ -7,6 +7,8 @@ import {
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
+const API_URL = process.env.REACT_APP_URL_BACKEND || ''; // <-- Define esto en Render
+
 function ReporteCitas() {
   const [desde, setDesde] = useState(null);
   const [hasta, setHasta] = useState(null);
@@ -15,82 +17,128 @@ function ReporteCitas() {
   const [detalleCitas, setDetalleCitas] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
   const [registrosPorPagina, setRegistrosPorPagina] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const obtenerDatos = async () => {
+  // Helper: formatea fecha a YYYY-MM-DD (local)
+  const formatDateYYYYMMDD = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // Helper: obtiene id_usuario desde localStorage (suponiendo que guardaste user en login)
+  const getUserIdFromStorage = () => {
     try {
-      const params = {
-        mostrar_todos: mostrarTodos,
-        desde: desde ? desde.toISOString().slice(0, 10) : '',
-        hasta: hasta ? hasta.toISOString().slice(0, 10) : ''
-      };
-
-      const response = await axios.get('http://localhost:3001/api/reportes/citas/visual', { params });
-      setGraficoCitas(response.data.distribucion);
-      setDetalleCitas(response.data.detalle);
-      setPaginaActual(1);
-    } catch (error) {
-      console.error('Error al obtener citas:', error);
+      const userJson = localStorage.getItem('user');
+      if (!userJson) return null;
+      const user = JSON.parse(userJson);
+      return user?.id || user?.id_usuario || null;
+    } catch {
+      return null;
     }
   };
 
-  const exportarPDF = async () => {
+  const obtenerDatos = async () => {
+    setErrorMsg('');
+    setLoading(true);
     try {
-      const body = {
-        desde: desde ? desde.toISOString().slice(0, 10) : '',
-        hasta: hasta ? hasta.toISOString().slice(0, 10) : '',
-        mostrarTodos,
-        id_usuario: localStorage.getItem('id_usuario') || 1
+      const params = {
+        mostrar_todos: mostrarTodos,
+        desde: desde ? formatDateYYYYMMDD(desde) : '',
+        hasta: hasta ? formatDateYYYYMMDD(hasta) : ''
       };
 
-      const response = await axios.post('http://localhost:3001/api/reportes/citas/pdf', body, {
+      if (!API_URL) {
+        throw new Error('API_URL no está configurada. Define REACT_APP_URL_BACKEND en tu entorno.');
+      }
+
+      const response = await axios.get(`${API_URL}/api/reportes/citas/visual`, { params });
+      // Asegurarse de que la estructura existe
+      setGraficoCitas(response.data?.distribucion || []);
+      setDetalleCitas(response.data?.detalle || []);
+      setPaginaActual(1);
+    } catch (error) {
+      console.error('Error al obtener citas:', error);
+      setErrorMsg('Error al obtener datos. Revisa la consola y que REACT_APP_URL_BACKEND esté configurada.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const descargarBlob = (blob, filename) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const exportarPDF = async () => {
+    setErrorMsg('');
+    try {
+      if (!API_URL) throw new Error('API_URL no está configurada.');
+
+      const body = {
+        desde: desde ? formatDateYYYYMMDD(desde) : '',
+        hasta: hasta ? formatDateYYYYMMDD(hasta) : '',
+        mostrarTodos,
+        id_usuario: getUserIdFromStorage() || 1
+      };
+
+      const response = await axios.post(`${API_URL}/api/reportes/citas/pdf`, body, {
         responseType: 'blob'
       });
 
       const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'reporte_citas.pdf';
-      a.click();
+      descargarBlob(blob, 'reporte_citas.pdf');
     } catch (error) {
       console.error('Error al exportar PDF citas:', error);
+      setErrorMsg('Error al exportar PDF. Revisa la consola y la configuración del backend.');
     }
   };
 
   const exportarExcel = async () => {
+    setErrorMsg('');
     try {
+      if (!API_URL) throw new Error('API_URL no está configurada.');
+
       const body = {
-        desde: desde ? desde.toISOString().slice(0, 10) : '',
-        hasta: hasta ? hasta.toISOString().slice(0, 10) : '',
+        desde: desde ? formatDateYYYYMMDD(desde) : '',
+        hasta: hasta ? formatDateYYYYMMDD(hasta) : '',
         mostrarTodos,
-        id_usuario: localStorage.getItem('id_usuario') || 1
+        id_usuario: getUserIdFromStorage() || 1
       };
 
-      const response = await axios.post('http://localhost:3001/api/reportes/citas/excel', body, {
+      const response = await axios.post(`${API_URL}/api/reportes/citas/excel`, body, {
         responseType: 'blob'
       });
 
       const blob = new Blob([response.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'reporte_citas.xlsx';
-      a.click();
+      descargarBlob(blob, 'reporte_citas.xlsx');
     } catch (error) {
       console.error('Error al exportar Excel citas:', error);
+      setErrorMsg('Error al exportar Excel. Revisa la consola y la configuración del backend.');
     }
   };
 
   useEffect(() => {
     obtenerDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [desde, hasta, mostrarTodos]);
 
   const indiceUltimo = paginaActual * registrosPorPagina;
   const indicePrimero = indiceUltimo - registrosPorPagina;
   const citasPaginadas = detalleCitas.slice(indicePrimero, indiceUltimo);
-  const totalPaginas = Math.ceil(detalleCitas.length / registrosPorPagina);
+  const totalPaginas = Math.max(1, Math.ceil(detalleCitas.length / registrosPorPagina));
 
   const cambiarPagina = (nueva) => {
     if (nueva >= 1 && nueva <= totalPaginas) {
@@ -140,10 +188,13 @@ function ReporteCitas() {
           </div>
         </div>
         <div className="col-12 col-sm-6 col-md-3 d-flex flex-wrap gap-2">
-          <button className="btn btn-danger w-100" onClick={exportarPDF}>📄 Exportar PDF</button>
-          <button className="btn btn-success w-100" onClick={exportarExcel}>📊 Exportar Excel</button>
+          <button className="btn btn-danger w-100" onClick={exportarPDF} disabled={loading}>📄 Exportar PDF</button>
+          <button className="btn btn-success w-100" onClick={exportarExcel} disabled={loading}>📊 Exportar Excel</button>
         </div>
       </div>
+
+      {errorMsg && <div className="alert alert-danger">{errorMsg}</div>}
+      {loading && <div className="mb-3">Cargando datos...</div>}
 
       <div className="card mb-4">
         <div className="card-body">
@@ -171,7 +222,10 @@ function ReporteCitas() {
             <select
               className="form-select w-auto d-inline-block ms-2"
               value={registrosPorPagina}
-              onChange={(e) => setRegistrosPorPagina(Number(e.target.value))}
+              onChange={(e) => {
+                setRegistrosPorPagina(Number(e.target.value));
+                setPaginaActual(1);
+              }}
             >
               <option value={5}>5</option>
               <option value={10}>10</option>
@@ -193,16 +247,22 @@ function ReporteCitas() {
                 </tr>
               </thead>
               <tbody>
-                {citasPaginadas.map((c, i) => (
-                  <tr key={i}>
-                    <td>{new Date(c.fecha_cita).toISOString().split('T')[0]}</td>
-                    <td>{c.hora}</td>
-                    <td>{c.nombre_paciente}</td>
-                    <td>{c.dpi}</td>
-                    <td>{c.motivo}</td>
-                    <td>{c.estado}</td>
+                {citasPaginadas.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center">No hay registros</td>
                   </tr>
-                ))}
+                ) : (
+                  citasPaginadas.map((c, i) => (
+                    <tr key={i}>
+                      <td>{c.fecha_cita ? formatDateYYYYMMDD(c.fecha_cita) : ''}</td>
+                      <td>{c.hora || ''}</td>
+                      <td>{c.nombre_paciente || ''}</td>
+                      <td>{c.dpi || ''}</td>
+                      <td>{c.motivo || ''}</td>
+                      <td>{c.estado || ''}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
