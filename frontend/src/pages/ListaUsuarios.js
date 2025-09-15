@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-// ✅ URL dinámica (Render o local)
 const API_URL = process.env.REACT_APP_URL_BACKEND || '';
 
 const ListaUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [mensaje, setMensaje] = useState(null);
 
-  // Paginación
   const [paginaActual, setPaginaActual] = useState(1);
-  const usuariosPorPagina = 5; // ✅ muestra 5 por página (puedes cambiarlo)
+  const usuariosPorPagina = 5;
 
-  // Cargar usuarios al inicio
   useEffect(() => {
     fetchUsuarios();
   }, []);
+
+  useEffect(() => {
+    if (mensaje) {
+      const timer = setTimeout(() => setMensaje(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [mensaje]);
 
   const fetchUsuarios = async () => {
     try {
@@ -31,18 +35,16 @@ const ListaUsuarios = () => {
       const nuevoEstado = estadoActual === 1 ? 0 : 1;
       await axios.patch(`${API_URL}/api/usuarios/${id}`, { estado: nuevoEstado });
       setMensaje(`✅ Usuario ${nuevoEstado === 1 ? 'activado' : 'desactivado'} correctamente`);
-      fetchUsuarios(); // refrescar lista
+      fetchUsuarios();
     } catch (error) {
       console.error('Error al actualizar estado:', error);
       setMensaje('❌ Error al actualizar estado del usuario');
     }
   };
 
-  // Calcular usuarios para la página actual
   const indiceUltimo = paginaActual * usuariosPorPagina;
   const indicePrimero = indiceUltimo - usuariosPorPagina;
   const usuariosPagina = usuarios.slice(indicePrimero, indiceUltimo);
-
   const totalPaginas = Math.ceil(usuarios.length / usuariosPorPagina);
 
   return (
@@ -90,30 +92,22 @@ const ListaUsuarios = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center">
-                  No hay usuarios registrados
-                </td>
+                <td colSpan="6" className="text-center">No hay usuarios registrados</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {/* ✅ Controles de paginación */}
       {totalPaginas > 1 && (
         <nav>
           <ul className="pagination justify-content-center">
             <li className={`page-item ${paginaActual === 1 ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => setPaginaActual(paginaActual - 1)}>
-                Anterior
-              </button>
+              <button className="page-link" onClick={() => setPaginaActual(paginaActual - 1)}>Anterior</button>
             </li>
 
             {[...Array(totalPaginas)].map((_, index) => (
-              <li
-                key={index}
-                className={`page-item ${paginaActual === index + 1 ? 'active' : ''}`}
-              >
+              <li key={index} className={`page-item ${paginaActual === index + 1 ? 'active' : ''}`}>
                 <button className="page-link" onClick={() => setPaginaActual(index + 1)}>
                   {index + 1}
                 </button>
@@ -121,9 +115,7 @@ const ListaUsuarios = () => {
             ))}
 
             <li className={`page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => setPaginaActual(paginaActual + 1)}>
-                Siguiente
-              </button>
+              <button className="page-link" onClick={() => setPaginaActual(paginaActual + 1)}>Siguiente</button>
             </li>
           </ul>
         </nav>
