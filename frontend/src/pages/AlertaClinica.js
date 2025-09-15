@@ -3,6 +3,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 
+// ✅ URL dinámica (Render o local)
+const API_URL = process.env.REACT_APP_URL_BACKEND || "";
+
 const AlertaClinica = () => {
   const [formulario, setFormulario] = useState({
     tipo_alerta: "",
@@ -19,9 +22,9 @@ const AlertaClinica = () => {
   const id_usuario = JSON.parse(localStorage.getItem("user"))?.id_usuario || 1;
 
   useEffect(() => {
-    axios.get("http://localhost:3001/api/pacientes")
+    axios.get(`${API_URL}/api/pacientes`)
       .then(res => setPacientes(res.data))
-      .catch(err => console.error(err));
+      .catch(err => console.error("Error al cargar pacientes:", err));
   }, []);
 
   const calcularEdad = (fechaNacimiento) => {
@@ -96,7 +99,7 @@ const AlertaClinica = () => {
       confirmButtonColor: '#d33'
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.post("http://localhost:3001/api/alertas", datos)
+        axios.post(`${API_URL}/api/alertas`, datos)
           .then(() => {
             Swal.fire({
               icon: 'success',
