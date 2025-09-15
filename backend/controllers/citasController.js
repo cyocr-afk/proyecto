@@ -32,7 +32,7 @@ exports.obtenerCitas = (req, res) => {
     c.hora,
     c.estado,
     p.nombre AS nombre_paciente,
-    m.nombre AS motivo
+    m.nombre AS motivos_cita
     FROM citaseguimiento c
     JOIN paciente p ON c.id_paciente = p.id_paciente
     JOIN motivos_cita m ON c.id_motivo = m.id_motivo;
