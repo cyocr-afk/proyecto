@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './HistorialPaciente.css';
 
-const API = 'http://localhost:3001/api';
+// ✅ URL dinámica (Render o local)
+const API_URL = process.env.REACT_APP_URL_BACKEND || '';
 
 const HistorialClinico = () => {
   const [term, setTerm] = useState('');
@@ -28,7 +29,7 @@ const HistorialClinico = () => {
 
     setLoadingSug(true);
     try {
-      const { data } = await axios.get(`${API}/pacientes`, { params: { nombre: value } });
+      const { data } = await axios.get(`${API_URL}/api/pacientes`, { params: { nombre: value } });
       setSugerencias(data);
     } catch (err) {
       console.error(err);
@@ -43,7 +44,7 @@ const HistorialClinico = () => {
     setSugerencias([]);
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/historialpaciente`, {
+      const { data } = await axios.get(`${API_URL}/api/historialpaciente`, {
         params: { id_paciente: paciente.id_paciente },
       });
       if (data.ok) setDatos(data.data);
