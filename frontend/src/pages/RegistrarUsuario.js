@@ -137,7 +137,7 @@ const RegistrarUsuario = () => {
 
         {/* Botón */}
         <button type="submit" className="btn btn-primary">
-          Registrar
+          Guardar
         </button>
       </form>
 
